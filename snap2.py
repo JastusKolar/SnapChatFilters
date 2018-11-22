@@ -5,6 +5,8 @@ sys.path.remove('/opt/ros/kinetic/lib/python2.7/dist-packages')
 import cv2, time, dlib, math
 import numpy as np
 from imutils import face_utils, rotate_bound
+from os import listdir
+from os.path import isfile, join
 
 def calc_incl(p1, p2):
 	x1,x2,y1,y2 = p1[0], p2[0], p1[1], p2[1]
@@ -67,6 +69,14 @@ def get_bbox(points, part):
 		(x,y,w,h) = calc_bbox(points[48:68])	#mouth
 	return (x,y,w,h)
 
+dir_ = './sprites/googlies/'
+googlies = [f for f in listdir(dir_) if isfile(join(dir_, f))]
+i = 0
+dir1 = './sprites/clouds/'
+clouds = [g for g in listdir(dir1) if isfile(join(dir1, g))]
+j = 0
+
+
 vs = cv2.VideoCapture(0)
 time.sleep(1.5)
 
@@ -86,8 +96,16 @@ while True:
 		incl = calc_incl(shape[17], shape[26])
 
 		mouth_open = (shape[66][1] - shape[62][1]) >= 10
-		(x0,y0,w0,h0) = get_bbox(shape, 6)
-		
+		(x0,y0,w0,h0) = get_bbox(shape, 6)	#mouth
+		(x1,y1,w1,h1) = get_bbox(shape, 1)	#eyes
+		(x2,y2,w2,h2) = get_bbox(shape, 5)	#nose
+		apply_sprite(frame, dir_+googlies[i], w, x, y1, incl, ontop = False)
+		i += 1
+		i = 0 if i >= len(googlies)	else i
+		apply_sprite(frame, dir1+clouds[j], w, x, y-100, incl, ontop = False)
+		j += 1
+		j = 0 if j >= len(clouds) else j
+		apply_sprite(frame, './sprites/nosepick.png', w2, x2-15, y2+25, incl, ontop = False)
 		if mouth_open:
 			apply_sprite(frame, './sprites/rainbow.png', w0, x0, y0, incl, ontop = False)
 
